@@ -1,0 +1,165 @@
+# Node.js dependencies
+/nodejs/node_modules/
+**/node_modules/
+
+# Runtime data for local services (do NOT commit these)
+/.n8n/
+/.ollama/
+
+# Local env and secret files
+.env
+.env.local
+.env.*.local
+.credentials
+secrets.env
+*.pem
+*.key
+
+# Docker compose overrides and local docker envs
+docker-compose.yml
+docker-compose.*.local.yml
+# Allow tracking override files (don't ignore override)
+# (docker-compose.override.yml will be tracked in repo)
+# remove any explicit ignore for docker-compose.override.yml
+
+# Logs
+*.log
+logs/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# OS/editor files
+.vscode/
+.idea/
+*.sublime-workspace
+*.sublime-project
+.DS_Store
+Thumbs.db
+
+# Python artifacts
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.egg-info/
+.eggs/
+venv/
+venv-*/
+.venv/
+.pytest_cache/
+
+# Temporary/misc build artifacts
+tmp/
+temp/
+.cache/
+.build/
+dist/
+out/
+
+# Test artifacts / coverage
+coverage/
+*.lcov
+
+# IDE project files
+*.iml
+
+# Swap / backup files
+*~
+*.swp
+*.swo
+
+# Local scripts outputs
+scripts/output/
+scripts/tmp/
+
+# Keep this file in repo. Update when adding new local-only files.
+# Node.js dependencies
+/nodejs/node_modules/
+**/node_modules/
+
+# Runtime data for local services (do NOT commit these)
+./.n8n/
+./.ollama/
+
+# Local env and secret files
+.env
+.env.local
+.env.*.local
+.credentials
+secrets.env
+*.pem
+*.key
+
+# Docker artifacts
+# keep generic docker compose local files ignored, but allow override to be tracked
+# (explicit override ignore removed so override can be added to repo)
+*.log
+
+# Logs
+*.log
+logs/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# OS/editor files
+.vscode/
+.idea/
+*.sublime-workspace
+*.sublime-project
+.DS_Store
+Thumbs.db
+
+# Python artifacts (some helper scripts/tests include Python)
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.egg-info/
+.eggs/
+venv/
+venv-*/
+.venv/
+.pytest_cache/
+
+# npm / lockfiles (do not ignore lockfiles normally; included here only if you intentionally vendor them elsewhere)
+# package-lock.json
+# pnpm-lock.yaml
+# yarn.lock
+
+# Temporary/misc build artifacts
+tmp/
+temp/
+.cache/
+.build/
+dist/
+out/
+
+# Test artifacts / coverage
+coverage/
+*.lcov
+
+# IDE project files
+*.iml
+
+# Mac/Linux swap / backup files
+*~
+*.swp
+*.swo
+
+# Kubernetes / local cluster config
+.kube/
+kubectl-config
+
+# Local scripts, generated test outputs (if you generate them locally during runs)
+scripts/output/
+scripts/tmp/
+
+# Optional: ignore local-only generated NodeJS server artifacts (if any)
+nodejs/*.log
+nodejs/.env
+
+# Keep this file in repo. Update when adding new local-only files.

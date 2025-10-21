@@ -1,0 +1,62 @@
+{
+  "name": "WA Local Agent (Receiver)",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "message/receive",
+        "responseData": "{\"status\": \"ok\"}"
+      },
+      "id": "ReceiverWebhook",
+      "name": "Receiver Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [260, 260]
+    },
+    {
+      "parameters": {
+        "functionCode": "// Normalize internal receiver payload\nvar inJson = items[0].json;\nreturn [{ json: { messages: [{ id: 234098230498 }] } }];"
+      },
+      "id": "NormalizeReceiver",
+      "name": "Normalize Receiver",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [520, 260]
+    },
+    {
+      "parameters": {
+        "url": "=https://graph.facebook.com/v20.0/{{ $json.phone_number_id || $env.PHONE_NUMBER_ID }}/messages",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "httpHeaderAuth",
+        "jsonParameters": true,
+        "sendBody": true,
+        "bodyParametersJson": "={\n  \"messaging_product\": \"whatsapp\",\n  \"to\": \"{{$json.from}}\",\n  \"type\": \"text\",\n  \"text\": { \"body\": \"{{$json.final_answer}}\" }\n}"
+      },
+      "id": "SendWAReceiver",
+      "name": "Send WhatsApp (Receiver)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [780, 260],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "wa-token",
+          "name": "WA Header Auth"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "id": "ReturnReceiver",
+      "name": "Return",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [1040, 260]
+    }
+  ],
+  "connections": {
+    "Receiver Webhook": { "main": [[{ "node": "Normalize Receiver", "type": "main", "index": 0 }]] },
+    "Normalize Receiver": { "main": [[{ "node": "Send WhatsApp (Receiver)", "type": "main", "index": 0 }]] },
+    "Send WhatsApp (Receiver)": { "main": [[{ "node": "Return", "type": "main", "index": 0 }]] }
+  },
+  "settings": { "executionOrder": "v1", "saveManualExecutions": true }
+}

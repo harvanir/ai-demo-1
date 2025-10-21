@@ -1,0 +1,49 @@
+version: '3.8'
+services:
+  n8n:
+    env_file: .env
+    volumes:
+      - ./.n8n:/home/node/.n8n:rw
+    ports:
+      - "5678:5678" # n8n editor
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "node -e \"require('http').get('http://127.0.0.1:5678',()=>{}).on('error',()=>process.exit(1))\""]
+      interval: 30s
+      timeout: 5s
+      retries: 5
+      start_period: 10s
+    command: ["n8n", "start"]
+
+  ollama:
+    env_file: .env
+    volumes:
+      - ./.ollama:/root/.ollama:rw
+    ports:
+      - "11434:11434" # ollama API
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://127.0.0.1:11434/ || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
+  nodejs:
+    build: ./nodejs
+    env_file: .env
+    volumes:
+      - ./nodejs:/usr/src/app:rw
+      - /usr/src/app/node_modules
+    ports:
+      - "3000:3000"
+    restart: unless-stopped
+    depends_on:
+      - n8n
+    healthcheck:
+      test: ["CMD-SHELL", "node -e \"require('http').get('http://127.0.0.1:3000',()=>{}).on('error',()=>process.exit(1))\""]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    command: sh -c "npm install && npm run dev"
