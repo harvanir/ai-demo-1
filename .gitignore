@@ -17,7 +17,6 @@ secrets.env
 
 # Docker compose overrides and local docker envs
 docker-compose.yml
-docker-compose.*.local.yml
 # Allow tracking override files (don't ignore override)
 # (docker-compose.override.yml will be tracked in repo)
 # remove any explicit ignore for docker-compose.override.yml
