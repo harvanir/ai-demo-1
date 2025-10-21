@@ -161,4 +161,10 @@ scripts/tmp/
 nodejs/*.log
 nodejs/.env
 
+# postgres
+.pgadmin
+.pgadmin_data
+.pgdata
+.pgadmin/servers.json
+
 # Keep this file in repo. Update when adding new local-only files.

@@ -53,3 +53,52 @@ Catatan & debugging cepat
 
 Kontak
 - Repo ini dibuat untuk development lokal. Jika butuh bantuan untuk melakukan import otomatis atau menjalankan tes end-to-end, beri tahu saya dan saya akan bantu menjalankannya.
+
+pgAdmin servers.json (local setup)
+
+If you want pgAdmin to auto-register a set of servers on startup, copy the included `servers-sample.json` into the `.pgadmin` folder as `servers.json`.
+
+Steps:
+
+1. Create the folder and copy the sample:
+
+```bash
+mkdir -p .pgadmin
+cp servers-sample.json .pgadmin/servers.json
+```
+
+2. Prepare working directories and permissions (recommended)
+
+Run the provided helper script to create the common runtime directories and set ownership/permissions in a safe, repeatable way:
+
+```bash
+./scripts/init_workdirs.sh
+```
+
+If you need to set ownership to a specific UID/GID used by container users (for example `999:999`), run:
+
+```bash
+./scripts/init_workdirs.sh --uid 999 --gid 999
+```
+
+Use `--force-777` only as a last-resort development fallback:
+
+```bash
+./scripts/init_workdirs.sh --force-777
+```
+
+3. Keep secrets out of the repo:
+
+- Do NOT commit `.pgadmin/servers.json` if it contains credentials. If `servers.json` contains passwords, prefer removing them and use environment variables.
+- Ensure `PGADMIN_DEFAULT_EMAIL` and `PGADMIN_DEFAULT_PASSWORD` are set in your `.env` (this is the default pgAdmin account used on first start).
+
+4. Troubleshooting
+
+- If pgAdmin fails to write the file or load the servers list, check container logs:
+
+```bash
+docker compose logs pgadmin
+ls -la .pgadmin
+```
+
+That’s all — copying `servers-sample.json` to `.pgadmin/servers.json` will pre-register servers when pgAdmin starts.
