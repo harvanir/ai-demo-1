@@ -1,0 +1,157 @@
+{
+  "name": "WA Local Agent (Receiver)",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "message/receive",
+        "options": {}
+      },
+    "id": "ReceiverWebhook",
+      "name": "Receiver Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        -496,
+        0
+      ],
+      "webhookId": "dd819fa4-ef7e-4cfb-b485-f69a4def299f"
+    },
+    {
+      "parameters": {
+        "functionCode": "// Normalize internal receiver payload\nvar inJson = items[0].json;\nreturn [{ json: { messages: [{ id: 234098230498 }] } }];"
+      },
+  "id": "NormalizeReceiver",
+      "name": "Normalize Receiver",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        -64,
+        -224
+      ],
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "url": "=https://graph.facebook.com/v20.0/{{ $json.phone_number_id || $env.PHONE_NUMBER_ID }}/messages",
+        "authentication": "predefinedCredentialType",
+        "nodeCredentialType": "httpHeaderAuth",
+        "sendBody": true,
+        "bodyParameters": {
+          "parameters": [
+            {}
+          ]
+        },
+        "options": {}
+      },
+  "id": "SendWhatsAppReceiver",
+      "name": "Send WhatsApp (Receiver)",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        144,
+        -224
+      ],
+      "disabled": true
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+  "id": "ReturnNode",
+      "name": "Return",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        256,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://evolution_api:8080/message/sendText/my-wa",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "apikey",
+              "value": "EVOL_api_KEY_9e7f0c1f2f1b4d3698452bbf82d7ab54"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ {\n  number: $json.body.to,\n  text: $json.body.text.body\n} }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        -240,
+        0
+      ],
+      "id": "HTTPRequest",
+      "name": "HTTP Request"
+    },
+    {
+      "parameters": {
+        "jsCode": "// Loop over input items and add a new field called 'myNewField' to the JSON of each one\n// for (const item of $input.all()) {\n//   item.json.myNewField = 1;\n// }\n\nreturn $input.all();"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        16,
+        0
+      ],
+      "id": "EvoAPISendTextReceiver",
+      "name": "Evo API sendText Receiver"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Receiver Webhook": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Request": {
+      "main": [
+        [
+          {
+            "node": "Evo API sendText Receiver",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Evo API sendText Receiver": {
+      "main": [
+        [
+          {
+            "node": "Return",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "1",
+  "meta": {
+    "instanceId": "d1dd7e5dd6ef0a66e93ac6ffc18ee67dcd1875c66d0122ea6cac1a727c399b72"
+  },
+  "id": "WA_Local_Agent_Receiver",
+  "tags": []
+}

@@ -1,0 +1,32 @@
+{
+  "event": "messages.upsert",
+  "instance": "my-wa",
+  "data": {
+    "key": {
+      "remoteJid": "628111557416@s.whatsapp.net",
+      "fromMe": false,
+      "id": "AC4F212327F1C01E9EA64FE0823B8C16"
+    },
+    "pushName": "Ul4nd",
+    "message": {
+      "conversation": "Test",
+      "messageContextInfo": {
+        "deviceListMetadata": {
+          "recipientKeyHash": "kja0xF9Gf7kVdA==",
+          "recipientTimestamp": "1761072335"
+        },
+        "deviceListMetadataVersion": 2,
+        "messageSecret": "YCRlUcQewNHMZktxwK8qzPtE5NKQBNWpKC4Rkegzg3k="
+      }
+    },
+    "messageType": "conversation",
+    "messageTimestamp": 1761148737,
+    "instanceId": "3f922d77-cf9f-44d6-a410-096afb57fff4",
+    "source": "android"
+  },
+  "destination": "http://n8n:5678/webhook/message",
+  "date_time": "2025-10-22T12:58:57.704Z",
+  "sender": "6285691285642@s.whatsapp.net",
+  "server_url": "http://localhost:8080",
+  "apikey": "CAB2D473-2539-447C-AAFE-C371EE3DFE85"
+}

@@ -81,6 +81,16 @@ docker compose logs -f nodejs
 
 - The main workflow exposes a webhook at path `wa/incoming`. When testing from the n8n editor the runtime webhook URL appears under `/webhook-test/<path>`.
 
+The main workflow exposes a webhook at path `wa/incoming`. When testing from the n8n editor the runtime webhook URL appears under `/webhook-test/<path>`.
+
+Importing n8n workflows
+
+- Open the n8n Editor at http://localhost:5678.
+- Import these two JSON files from `supports/n8n` (these are the canonical, actively maintained workflows):
+  - `WA Local Agent - Evolution API - messages upsert.json` (sender / message upsert flows)
+  - `WA Local Agent (Receiver).json` (receiver / incoming webhook flow)
+- Activate the workflow(s) you want to use so webhooks register with the runtime. Make sure both workflows are active if you plan to test end-to-end flows.
+
 Quick checks (from host):
 
 ```bash

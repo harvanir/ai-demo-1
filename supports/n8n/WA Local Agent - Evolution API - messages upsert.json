@@ -1,0 +1,267 @@
+{
+  "name": "WA Local Agent - Evolution API - messages upsert",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "message/messages-upsert",
+        "options": {}
+      },
+      "id": "9a270b84-27cf-4efb-aed1-bb87ba9848ed",
+      "name": "HTTP Trigger",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        288,
+        -64
+      ],
+      "webhookId": "4a0a4971-ac28-4390-8fa7-886fb66b4a82"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://ollama:11434/v1/chat/completions",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ $json.bodyObject }}",
+        "options": {}
+      },
+      "id": "9456ed76-99b1-458a-afed-f8c3d38ba31f",
+      "name": "Ollama Chat",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        1056,
+        -320
+      ]
+    },
+    {
+      "parameters": {
+        "functionCode": "// ========== extract dari original payload (posisi yang benar) ==========\nconst remoteJid = $json?.body?.data?.key?.remoteJid || '';\nconst waNumber  = remoteJid.replace(/@.+$/, '');\n\nlet user_text =\n  $json?.body?.data?.message?.conversation ||\n  $json?.body?.data?.message?.extendedTextMessage?.text ||\n  '';\n\nconst source = user_text\n  ? ($json?.body?.data?.message?.conversation ? 'body.data.message.conversation'\n                                              : 'body.data.message.extendedTextMessage.text')\n  : 'unknown';\n\n// ========== build payload ollama ==========\nconst envModel = $env.OLLAMA_MODEL || 'llama3:8b-instruct-q4_0';\nconst payload = {\n  model: envModel,\n  messages: [\n    {\n      role: 'system',\n      content:\n        'Kamu adalah agen lokal. Jawab singkat, jelas, sopan. Jika perlu langkah, beri bullet. Bahasa Indonesia.'\n    },\n    { role: 'user', content: user_text }\n  ],\n  temperature: 0.2,\n  wa_number: waNumber\n};\n\n// ========== return sesuai format kamu ==========\nreturn [{\n  json: {\n    bodyString: JSON.stringify(payload),\n    bodyObject: payload,\n    user_text_used: user_text,\n    user_text_source: source,\n    wa_number: waNumber,\n    from_me: $json?.body?.data?.key?.fromMe || '' === true,\n    message_type: $json?.body?.data?.messageType || '',\n    _input: $json\n  }\n}];"
+      },
+      "id": "41a5a56c-72f7-425e-9958-c68d7ea89ab2",
+      "name": "Build Ollama Body",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        480,
+        -64
+      ]
+    },
+    {
+      "parameters": {
+        "functionCode": "// ========== Extract Answer from Ollama Response ==========\nconst res = items[0].json;\nlet answer = '';\n\nif (res?.message?.content) {\n  answer = res.message.content;\n} else if (Array.isArray(res?.choices) && res.choices.length > 0) {\n  answer = res.choices[0]?.message?.content || '';\n}\n\n// ========== Extract WA number from Build Ollama Body ==========\nconst from = $node[\"Build Ollama Body\"].json[\"wa_number\"] || \"\";\n\n// ========== Return to next (sendText node) ==========\nreturn [\n  {\n    json: {\n      from,\n      final_answer: answer\n    }\n  }\n];"
+      },
+      "id": "07c9f7d1-e9f7-4b03-9b22-57521bfaea44",
+      "name": "Format Answer",
+      "type": "n8n-nodes-base.function",
+      "typeVersion": 1,
+      "position": [
+        1264,
+        -320
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "=http://n8n:5678/webhook/message/receive",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ { \n  messaging_product: 'whatsapp',\n  to: $json.from,\n  type: 'text',\n  text: { body: $json.final_answer || '' }\n} }}",
+        "options": {}
+      },
+      "id": "f2bee92b-896c-4ce8-80b9-4ccb845f3b40",
+      "name": "Send WhatsApp",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        1456,
+        -320
+      ]
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "9e7301b3-4e95-4ae2-9634-106423322876",
+      "name": "Return",
+      "type": "n8n-nodes-base.respondToWebhook",
+      "typeVersion": 1,
+      "position": [
+        1632,
+        -48
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "db0bd947-f4b0-4309-baf2-104670775847",
+              "leftValue": "={{ $json.message_type }}",
+              "rightValue": "={{ 'conversation' }}",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        656,
+        -64
+      ],
+      "id": "14d2196f-f492-4fac-a352-0458f3c901ac",
+      "name": "is conversation"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "48c82072-adde-4dd6-8953-1cbac08b7bc5",
+              "leftValue": "={{ $json.from_me }}",
+              "rightValue": "={{ false }}",
+              "operator": {
+                "type": "boolean",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        848,
+        -208
+      ],
+      "id": "f7f865ac-cc79-43bc-91f9-37bab2dbaed7",
+      "name": "is not Me"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Build Ollama Body": {
+      "main": [
+        [
+          {
+            "node": "is conversation",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Ollama Chat": {
+      "main": [
+        [
+          {
+            "node": "Format Answer",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Format Answer": {
+      "main": [
+        [
+          {
+            "node": "Send WhatsApp",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "HTTP Trigger": {
+      "main": [
+        [
+          {
+            "node": "Build Ollama Body",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send WhatsApp": {
+      "main": [
+        [
+          {
+            "node": "Return",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "is conversation": {
+      "main": [
+        [
+          {
+            "node": "is not Me",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Return",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "is not Me": {
+      "main": [
+        [
+          {
+            "node": "Ollama Chat",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Return",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "2baaaa9a-965b-45c1-82a0-f678dd832fb6",
+  "meta": {
+    "instanceId": "d1dd7e5dd6ef0a66e93ac6ffc18ee67dcd1875c66d0122ea6cac1a727c399b72"
+  },
+  "id": "ep9oRI3bhAvk9DsJ",
+  "tags": []
+}

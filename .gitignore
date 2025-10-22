@@ -167,4 +167,7 @@ nodejs/.env
 .pgdata
 .pgadmin/servers.json
 
+# evolution api
+.evolution_instances
+
 # Keep this file in repo. Update when adding new local-only files.

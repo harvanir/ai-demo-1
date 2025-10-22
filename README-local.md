@@ -2,14 +2,15 @@ README — Menjalankan lokal (n8n + Ollama)
 
 Tujuan singkat
 - Jalankan n8n dan Ollama secara lokal lewat Docker Compose.
-- Import workflow n8n yang ada di folder `supports/n8n`.
+Import workflow n8n yang ada di folder `supports/n8n` (hanya dua file yang disarankan untuk di-import).
 - Tes end-to-end: webhook → n8n → Ollama → kirim pesan via WhatsApp Graph API (atau relay).
 
-Prasyarat
-- Docker & Docker Compose terpasang.
-- Port 11434 (Ollama) dan 5678 (n8n) tidak diblokir.
-- Jika menggunakan Facebook Graph API, siapkan `PHONE_NUMBER_ID` dan token yang sesuai (credential `WA Header Auth` di n8n).
-
+3. Import workflow ke n8n
+- Buka n8n Editor (http://localhost:5678).
+- Import dua file JSON yang disediakan di folder `supports/n8n`:
+	- `supports/n8n/WA Local Agent - Evolution API - messages upsert.json` (message upsert / sender flows)
+	- `supports/n8n/WA Local Agent (Receiver).json` (receiver / incoming webhook flow)
+- Aktifkan kedua file JSON yang ingin dipakai agar webhook terdaftar dan runtime aktif.
 Langkah cepat
 1. Jalankan layanan
 
@@ -25,8 +26,10 @@ docker compose logs -f n8n
 
 3. Import workflow ke n8n
 - Buka n8n Editor (http://localhost:5678).
-- Import file JSON: `supports/n8n/workflow.json` (utama) dan/atau `supports/n8n/workflow_sender.json`.
-- Aktifkan workflow agar webhook terdaftar.
+- Import dua file JSON yang disediakan di folder `supports/n8n`:
+	- `supports/n8n/WA Local Agent - Evolution API - messages upsert.json` (message upsert / sender flows)
+	- `supports/n8n/WA Local Agent (Receiver).json` (receiver / incoming webhook flow)
+- Aktifkan workflow yang ingin dipakai agar webhook terdaftar dan runtime aktif.
 
 4. Konfigurasi environment / kredensial
 - Jika ingin pakai Facebook Graph API, tetapkan `PHONE_NUMBER_ID` di environment n8n atau pada ekspresi node.
