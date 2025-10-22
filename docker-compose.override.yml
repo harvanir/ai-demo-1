@@ -1,11 +1,12 @@
-version: '3.8'
 services:
   n8n:
-    env_file: .env
+    image: n8nio/n8n:1.115.3
+    container_name: n8n
+    ports:
+      - "5678:5678"
     volumes:
       - ./.n8n:/home/node/.n8n:rw
-    ports:
-      - "5678:5678" # n8n editor
+    env_file: .env
     restart: unless-stopped
     healthcheck:
       test: ["CMD-SHELL", "node -e \"require('http').get('http://127.0.0.1:5678',()=>{}).on('error',()=>process.exit(1))\""]
@@ -13,14 +14,15 @@ services:
       timeout: 5s
       retries: 5
       start_period: 10s
-    command: ["n8n", "start"]
 
   ollama:
-    env_file: .env
+    image: ollama/ollama:0.12.6
+    container_name: ollama
+    ports:
+      - "11434:11434"
     volumes:
       - ./.ollama:/root/.ollama:rw
-    ports:
-      - "11434:11434" # ollama API
+    env_file: .env
     restart: unless-stopped
     healthcheck:
       test: ["CMD-SHELL", "curl -f http://127.0.0.1:11434/ || exit 1"]
@@ -30,13 +32,14 @@ services:
       start_period: 10s
 
   nodejs:
-    build: ./nodejs
-    env_file: .env
+    image: node:18
+    container_name: nodejs
+    working_dir: /usr/src/app
     volumes:
-      - ./nodejs:/usr/src/app:rw
-      - /usr/src/app/node_modules
+      - ./nodejs:/usr/src/app
     ports:
       - "3000:3000"
+    env_file: .env
     restart: unless-stopped
     depends_on:
       - n8n
@@ -46,4 +49,78 @@ services:
       timeout: 5s
       retries: 3
       start_period: 10s
-    command: sh -c "npm install && npm run dev"
+    command: sh -c "npm install && npm start"
+
+  evolution-api:
+    container_name: evolution_api
+    image: atendai/evolution-api:v2.1.1
+    restart: always
+    ports:
+      - "8080:8080"
+    env_file:
+      - .env
+    depends_on:
+      - fix-permissions
+      - postgres
+      - redis
+    volumes:
+      - ./.evolution_instances:/evolution/instances
+
+  fix-permissions:
+    image: alpine:3.18
+    container_name: fix_permissions
+    entrypoint: ["/bin/sh","-c"]
+    command: >
+      "mkdir -p /pgdata /pgadmin_data /pgadmin /redis && \
+      chmod -R 0777 /pgdata /pgadmin_data /pgadmin /redis || true"
+    volumes:
+      - ./.pgdata:/pgdata
+      - ./.pgadmin_data:/pgadmin_data
+      - ./.pgadmin:/pgadmin
+      - ./.redis:/redis
+    restart: 'no'
+
+  postgres:
+    image: postgres:16-alpine
+    container_name: postgres
+    restart: unless-stopped
+    env_file: .env
+    volumes:
+      - ./.pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U evolution -d evolution"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    depends_on:
+      - fix-permissions
+
+  pgadmin:
+    image: dpage/pgadmin4:8.13
+    container_name: pgadmin
+    restart: unless-stopped
+    env_file: .env
+    ports:
+      - "5050:80"
+    environment:
+      PGADMIN_CONFIG_ENHANCED_COOKIE_PROTECTION: "True"
+    depends_on:
+      - fix-permissions
+      - postgres
+    volumes:
+      - ./.pgadmin_data:/var/lib/pgadmin
+      - ./.pgadmin/servers.json:/pgadmin4/servers.json
+
+  redis:
+    image: redis:7-alpine
+    container_name: redis
+    restart: unless-stopped
+    command: >
+      sh -c 'redis-server --save "" --appendonly no'
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    depends_on:
+      - fix-permissions
